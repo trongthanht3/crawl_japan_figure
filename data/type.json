@@ -1,0 +1,18 @@
+[
+  {
+    "type_name": "scale-figure",
+    "type_url": "https://japanfigure.vn/collections/scale-figure"
+  },
+  {
+    "type_name": "chibi-figure",
+    "type_url": "https://japanfigure.vn/collections/chibi-figure"
+  },
+  {
+    "type_name": "action-figure",
+    "type_url": "https://japanfigure.vn/collections/action-figure"
+  },
+  {
+    "type_name": "artbook",
+    "type_url": "https://japanfigure.vn/collections/artbook"
+  }
+]

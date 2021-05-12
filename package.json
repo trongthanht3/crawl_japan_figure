@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "puppeteer": "^9.1.1"
+  },
+  "name": "crawljpf",
+  "version": "1.0.0",
+  "main": "crawl.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
