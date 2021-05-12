@@ -143,9 +143,9 @@ def crawl_per_type(file_uri, id):
     return df_data_temp, df_tags, df_image, id
 
 id = 0
-# files = ['action-figure.json', 'scale-figure.json', 'chibi-figure.json']
+files = ['action-figure.json', 'scale-figure.json', 'chibi-figure.json']
 # files = ['scale-figure.json']
-files = ['chibi-figure.json']
+# files = ['chibi-figure.json']
 names = ['id', 'title', 'price', 'release_date', 'quantity',
                  'description', 'key_search']
 df_data = pd.DataFrame(columns=names)
