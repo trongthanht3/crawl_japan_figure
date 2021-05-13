@@ -75,7 +75,7 @@ def crawlPage(id, type, url):
             # print("publisher_bobo:", publisher)
         description = description + fix_encoding(des.text) + ', '
     s_pub = pd.Series([publisher], index=['publisher'])
-    print(description)
+    # print(description)
 
 
     # get tags
@@ -137,7 +137,7 @@ def crawl_per_type(file_uri, id):
     df_tags = pd.DataFrame(columns=['id', 'tag_name'])
     df_image = pd.DataFrame(columns=['id', 'url'])
     df_pub = pd.DataFrame(columns=['publisher'])
-    for idx, link in zip(tqdm(range(len(links))), links):
+    for idx, link in zip(tqdm(range(len(links))), links[:3]):
         # print(link)
         df_trip = crawlPage(id, type, str(link['item_href']))
         df_data_temp = df_data_temp.append(df_trip[0], ignore_index=True)

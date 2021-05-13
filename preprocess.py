@@ -1,9 +1,5 @@
 import pandas as pd
 import re
 
-# process price
-# df = pd.read_csv('data/data2.csv')
-# df['price'] = df['price'].apply(lambda x: re.sub(',', '', x))
-# # print(df['price'].apply(lambda x: re.sub(',', '', x)))
-# df.to_csv('data/data_final.csv',index=False)
-
+df = pd.read_csv('data/final/data.csv', encoding='utf-8')
+print(df.head)
