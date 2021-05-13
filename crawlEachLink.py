@@ -7,6 +7,7 @@ import pandas as pd
 import re
 import time
 import json
+from ftfy import fix_encoding
 from tqdm import tqdm
 
 chrome_options = Options()
@@ -51,26 +52,31 @@ def crawlPage(id, type, url):
 
     # df_temp = pd.DataFrame(columns=[])
     #get ez info
+    title = "NaN";
     title_els = driver.find_element_by_xpath('//div[@class="product-title"]//h1')
     title = title_els.text
     # print(title)
+
+    price = "0"
     price_els = driver.find_element_by_xpath('//div[@class="product-price"]//span')
-    price = price_els.text[:-1]
+    price = re.sub(',', '', price_els.text[:-1])
     # print(price)
 
     #get description
-    description = ""
+    description = " "
     desc = driver.find_elements_by_xpath('//div[@id="description2"]//p//span//span//span//span')
     # print("des len: ", len(desc))
     pub_key = "Hãng sản xuất"
-    publisher = ""
+    publisher = "Japan"
     #get publisher and print shjt
     for des in desc:
         if pub_key in des.text:
             publisher = des.text[-16:]
             # print("publisher_bobo:", publisher)
-        description = description + un_unicode(des.text) + ' '
-    # print(description)
+        description = description + fix_encoding(des.text) + ', '
+    s_pub = pd.Series([publisher], index=['publisher'])
+    print(description)
+
 
     # get tags
     # TODO need a function to handle tags
@@ -81,19 +87,19 @@ def crawlPage(id, type, url):
         s_tag = pd.Series([id, tag.text], index=['id', 'tag_name'])
         # print(s_tag)
         df_tag = df_tag.append(s_tag, ignore_index=True)
-        description = description + tag.text + ' '
+        description = description + fix_encoding(tag.text) + ' '
         # print(tag.text, end=', ')
     s_tag = pd.Series([id, type], index=['id', 'tag_name'])
     df_tag = df_tag.append(s_tag, ignore_index=True)
-    description = description + type
     # print(df_tag)
 
     #get release date
     last_des = len(desc) - 1
+    release_date = "2020"
     try:
-        release_date = ''.join(c for c in str(desc[last_des].text) if c.isdigit() or c == '-' or c == '/')
+        release_date = "".join(c for c in str(desc[last_des].text) if c.isdigit() or c == '-' or c == '/')
     except:
-        release_date = '2020'
+        release_date = "2020"
     # print("release_date fuck:", release_date)
 
     #get image
@@ -116,10 +122,10 @@ def crawlPage(id, type, url):
     df_temp['price'] = price
     df_temp['release_date'] = release_date
     df_temp['quantity'] = 5
-    df_temp['description'] = description.encode('utf-8').decode('latin-1')
+    df_temp['description'] = description.encode('utf-8').decode('utf-8')
     df_temp['key_search'] = un_unicode(description)
     # print("other:",df_temp)
-    return df_temp, df_tag, df_image
+    return df_temp, df_tag, df_image, s_pub
 
 def crawl_per_type(file_uri, id):
     with open(file_uri, 'r', encoding='utf-8') as f:
@@ -130,17 +136,18 @@ def crawl_per_type(file_uri, id):
     df_data_temp = pd.DataFrame(columns=names)
     df_tags = pd.DataFrame(columns=['id', 'tag_name'])
     df_image = pd.DataFrame(columns=['id', 'url'])
-
-    for idx, link in zip(tqdm(range(len(links))), links[:]):
+    df_pub = pd.DataFrame(columns=['publisher'])
+    for idx, link in zip(tqdm(range(len(links))), links[:2]):
         # print(link)
         df_trip = crawlPage(id, type, str(link['item_href']))
         df_data_temp = df_data_temp.append(df_trip[0], ignore_index=True)
         df_tags = df_tags.append(df_trip[1], ignore_index=True)
         df_image = df_image.append(df_trip[2], ignore_index=True)
+        df_pub = df_pub.append(df_trip[3], ignore_index=True)
         id += 1
         # print('-------------')
 
-    return df_data_temp, df_tags, df_image, id
+    return df_data_temp, df_tags, df_image, df_pub, id
 
 id = 0
 files = ['action-figure.json', 'scale-figure.json', 'chibi-figure.json']
@@ -151,21 +158,26 @@ names = ['id', 'title', 'price', 'release_date', 'quantity',
 df_data = pd.DataFrame(columns=names)
 df_tags = pd.DataFrame(columns=['id', 'tag_name'])
 df_image = pd.DataFrame(columns=['id', 'url'])
+df_pub = pd.DataFrame(columns=['publisher'])
 
 for file in files:
     print("crawling: ", file)
-    df_data_temp, df_tags_temp, df_image_temp, id = crawl_per_type('data/'+file, id)
+    df_data_temp, df_tags_temp, df_image_temp, df_pub_temp, id = crawl_per_type('data/'+file, id)
     # print("id after {}: ".format(file), id)
     df_data = df_data.append(df_data_temp, ignore_index=True)
     df_tags = df_tags.append(df_tags_temp, ignore_index=True)
     df_image = df_image.append(df_image_temp, ignore_index=True)
-    print("---------------------------")
+    df_pub = df_pub.append(df_pub_temp, ignore_index=True)
+    print("\n---------------------------")
 
 print("total crawl: {} and ID: {}".format(len(df_data), id))
 df_data['id'] = pd.to_numeric(df_data['id'], downcast='integer')
 # print(df_data.head())
-df_data.to_csv('./data/data2.csv', encoding='utf-8', index=False)
-df_tags.to_csv('./data/tags2.csv', encoding='utf-8', index=False)
-df_image.to_csv('./data/images2.csv', encoding='utf-8', index=False)
+# with open('data/final/temp.csv', 'w') as f:
+#     df_data.to_csv(f, encoding='utf-8')
+df_data.to_csv('./data/final/data.csv', encoding='utf-8', index=False)
+df_tags.to_csv('./data/final/tags.csv', encoding='utf-8', index=False)
+df_image.to_csv('./data/final/images.csv', encoding='utf-8', index=False)
+df_pub.to_csv('./data/final/pubs.csv', encoding='utf-8', index=False)
 
 driver.close()
