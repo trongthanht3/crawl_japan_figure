@@ -66,15 +66,18 @@ def crawlPage(id, type, url):
     description = " "
     desc = driver.find_elements_by_xpath('//div[@id="description2"]//p//span//span//span//span')
     # print("des len: ", len(desc))
-    pub_key = "Hãng sản xuất"
+    pub_key = "Hãng sản xuất : "
     publisher = "Japan"
     #get publisher and print shjt
     for des in desc:
         if pub_key in des.text:
-            publisher = des.text[-16:]
+            try:
+                publisher = re.sub(pub_key, '', des.text)
+            except:
+                publisher = "Japan"
             # print("publisher_bobo:", publisher)
         description = description + fix_encoding(des.text) + ', '
-    s_pub = pd.Series([publisher], index=['publisher'])
+    s_pub = pd.Series([id, publisher], index=['id', 'publisher'])
     # print(description)
 
 
@@ -136,8 +139,8 @@ def crawl_per_type(file_uri, id):
     df_data_temp = pd.DataFrame(columns=names)
     df_tags = pd.DataFrame(columns=['id', 'tag_name'])
     df_image = pd.DataFrame(columns=['id', 'url'])
-    df_pub = pd.DataFrame(columns=['publisher'])
-    for idx, link in zip(tqdm(range(len(links))), links[:3]):
+    df_pub = pd.DataFrame(columns=['id', 'publisher'])
+    for idx, link in zip(tqdm(range(len(links))), links):
         # print(link)
         df_trip = crawlPage(id, type, str(link['item_href']))
         df_data_temp = df_data_temp.append(df_trip[0], ignore_index=True)
@@ -158,7 +161,7 @@ names = ['id', 'title', 'price', 'release_date', 'quantity',
 df_data = pd.DataFrame(columns=names)
 df_tags = pd.DataFrame(columns=['id', 'tag_name'])
 df_image = pd.DataFrame(columns=['id', 'url'])
-df_pub = pd.DataFrame(columns=['publisher'])
+df_pub = pd.DataFrame(columns=['id', 'publisher'])
 
 for file in files:
     print("crawling: ", file)
