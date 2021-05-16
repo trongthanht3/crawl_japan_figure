@@ -62,8 +62,10 @@ def crawlPage(id, type, url):
     price = re.sub(',', '', price_els.text[:-1])
     # print(price)
 
-    #get description
+    #get description, release string
     description = " "
+    rel_key = "Phát hành"
+    release_date = "2020"
     desc = driver.find_elements_by_xpath('//div[@id="description2"]//p//span//span//span//span')
     # print("des len: ", len(desc))
     pub_key = "Hãng sản xuất : "
@@ -76,12 +78,19 @@ def crawlPage(id, type, url):
             except:
                 publisher = "Japan"
             # print("publisher_bobo:", publisher)
+        if rel_key in des.text:
+            # get release date
+            try:
+                release_date = "".join(c for c in str(des.text) if c.isdigit() or c == '-' or c == '/')
+            except:
+                release_date = "2020"
+            # print("release_date fuck:", release_date)
         description = description + fix_encoding(des.text) + ', '
     s_pub = pd.Series([id, publisher], index=['id', 'publisher'])
     # print(description)
 
 
-    # get tags
+    # get tags, release_date
     # TODO need a function to handle tags
     df_tag = pd.DataFrame(columns=['id', 'tag_name'])
     tags_els = driver.find_elements_by_xpath('//ul[@class="tags"]//li//a')
@@ -91,19 +100,13 @@ def crawlPage(id, type, url):
         # print(s_tag)
         df_tag = df_tag.append(s_tag, ignore_index=True)
         description = description + fix_encoding(tag.text) + ' '
+
         # print(tag.text, end=', ')
     s_tag = pd.Series([id, type], index=['id', 'tag_name'])
     df_tag = df_tag.append(s_tag, ignore_index=True)
     # print(df_tag)
 
-    #get release date
-    last_des = len(desc) - 1
-    release_date = "2020"
-    try:
-        release_date = "".join(c for c in str(desc[last_des].text) if c.isdigit() or c == '-' or c == '/')
-    except:
-        release_date = "2020"
-    # print("release_date fuck:", release_date)
+
 
     #get image
     #TODO need function to handle image
